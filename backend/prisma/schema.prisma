@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum ReservationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum PriceRange {
+  BUDGET
+  MODERATE
+  PREMIUM
+  LUXURY
+}
+
+model User {
+  id                 String        @id @default(cuid())
+  name               String
+  email              String        @unique
+  passwordHash       String
+  role               UserRole      @default(CUSTOMER)
+  refreshTokenHash   String?
+  resetTokenHash     String?
+  resetTokenExpiresAt DateTime?
+  reservations       Reservation[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model Restaurant {
+  id            String        @id @default(cuid())
+  name          String
+  slug          String        @unique
+  description   String
+  cuisine       String
+  city          String
+  address       String
+  heroImageUrl  String
+  priceRange    PriceRange
+  rating        Float         @default(4.7)
+  reviewCount   Int           @default(0)
+  openingTime   String
+  closingTime   String
+  averageSpend  Int           @default(85)
+  isActive      Boolean       @default(true)
+  tables        Table[]
+  reservations  Reservation[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([city])
+  @@index([cuisine])
+  @@index([isActive])
+}
+
+model Table {
+  id             String        @id @default(cuid())
+  restaurantId   String
+  label          String
+  capacity       Int
+  isActive       Boolean       @default(true)
+  restaurant     Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  reservations   Reservation[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([restaurantId, label])
+  @@index([restaurantId])
+  @@index([capacity])
+}
+
+model Reservation {
+  id            String             @id @default(cuid())
+  userId        String
+  restaurantId  String
+  tableId       String
+  date          DateTime
+  timeSlot      String
+  guestCount    Int
+  status        ReservationStatus  @default(PENDING)
+  notes         String?
+  cancelledAt   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant    Restaurant         @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  table         Table              @relation(fields: [tableId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([restaurantId])
+  @@index([date])
+  @@index([status])
+  @@index([restaurantId, tableId, date, timeSlot])
+}
