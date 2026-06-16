@@ -1,8 +1,10 @@
 import {
   enrichRestaurant,
+  heatmapData,
   overview,
   popularTimes,
   reservations,
+  restaurantPerformance,
   restaurants,
   trends,
 } from '@/lib/mock-data';
@@ -60,6 +62,9 @@ export const api = {
   overview: () => request<DashboardOverview>('/admin/dashboard/overview', {}, overview),
   trends: () => request<typeof trends>('/admin/dashboard/trends', {}, trends),
   popularTimes: () => request<typeof popularTimes>('/admin/dashboard/popular-times', {}, popularTimes),
+  heatmap: () => request<typeof heatmapData>('/admin/dashboard/heatmap', {}, heatmapData),
+  restaurantPerformance: () =>
+    request<typeof restaurantPerformance>('/admin/dashboard/restaurant-performance', {}, restaurantPerformance),
   login: async (email: string, password: string) => {
     const session = await request<{ accessToken: string; user: User }>(
       '/auth/login',

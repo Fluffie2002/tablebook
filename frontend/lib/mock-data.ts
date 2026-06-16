@@ -480,91 +480,75 @@ export const reservations: Reservation[] = [
 
 
 export const overview: DashboardOverview = {
-
-  totalReservations: 528,
-
-  todaysReservations: 34,
-
-  activeRestaurants: 18,
-
-  revenue: 67200,
-
-  conversionRate: 72,
-
-  occupancyRate: 78,
-
-  avgPartySize: 3.6,
-
+  totalReservations: 2847,
+  todaysReservations: 41,
+  activeRestaurants: 6,
+  revenue: 186420,
+  conversionRate: 74,
+  occupancyRate: 81,
+  avgPartySize: 3.8,
 };
 
+function buildMockTrends() {
+  const dayWeights = [0.72, 0.7, 0.76, 0.84, 1.08, 1.28, 1.18];
+  const seasonal = [1.1, 1.22, 0.94, 0.9, 1.06, 1.14, 0.86, 1, 0.93, 0.97, 1.04, 1.18];
+  const anchor = new Date();
 
+  return Array.from({ length: 30 }).map((_, index) => {
+    const date = new Date(anchor);
+    date.setDate(anchor.getDate() - (29 - index));
+    const dayWeight = dayWeights[(date.getDay() + 6) % 7];
+    const monthWeight = seasonal[date.getMonth()];
+    const wave = 0.9 + Math.sin(index / 4.5) * 0.1 + Math.cos(index / 11) * 0.06;
+    const reservations = Math.round(26 * dayWeight * monthWeight * wave);
+    const revenue = Math.round(
+      reservations * (58 + Math.sin(index / 3.2) * 11 + (date.getDay() >= 5 ? 14 : 0)),
+    );
+    const occupancy = Math.min(
+      96,
+      Math.round(52 + dayWeight * 18 + Math.sin(index / 2.8) * 7 + (date.getDay() >= 5 ? 8 : 0)),
+    );
 
-export const trends = Array.from({ length: 14 }).map((_, index) => ({
+    return {
+      date: date.toLocaleDateString('en-MY', { month: 'short', day: 'numeric' }),
+      reservations,
+      revenue,
+      occupancy,
+    };
+  });
+}
 
-  date: `${index + 1} Jun`,
-
-  reservations: 18 + Math.round(Math.sin(index / 2) * 8) + index,
-
-  revenue: 2800 + index * 380,
-
-  occupancy: 62 + Math.round(Math.sin(index / 3) * 12) + index,
-
-}));
-
-
+export const trends = buildMockTrends();
 
 export const popularTimes = [
-
-  { timeSlot: '19:00', reservations: 142 },
-
-  { timeSlot: '20:00', reservations: 128 },
-
-  { timeSlot: '12:30', reservations: 96 },
-
-  { timeSlot: '13:00', reservations: 88 },
-
-  { timeSlot: '21:00', reservations: 72 },
-
-  { timeSlot: '20:30', reservations: 68 },
-
-  { timeSlot: '12:00', reservations: 54 },
-
+  { timeSlot: '19:00', reservations: 312 },
+  { timeSlot: '20:00', reservations: 286 },
+  { timeSlot: '19:30', reservations: 248 },
+  { timeSlot: '12:30', reservations: 214 },
+  { timeSlot: '20:30', reservations: 198 },
+  { timeSlot: '13:00', reservations: 176 },
+  { timeSlot: '18:30', reservations: 154 },
+  { timeSlot: '12:00', reservations: 132 },
+  { timeSlot: '21:00', reservations: 118 },
+  { timeSlot: '13:30', reservations: 92 },
 ];
-
-
 
 export const restaurantPerformance: RestaurantPerformance[] = [
-
-  { name: 'Warung Pak Din', reservations: 156, revenue: 6552, occupancy: 91, trend: 14.2 },
-
-  { name: "Madam Li's Kitchen", reservations: 134, revenue: 9112, occupancy: 84, trend: 9.1 },
-
-  { name: 'Bijan Heritage', reservations: 98, revenue: 12250, occupancy: 89, trend: 12.8 },
-
-  { name: 'Tiga Rasa & Co.', reservations: 86, revenue: 7568, occupancy: 82, trend: 11.4 },
-
-  { name: 'Restoran Saffron Lane', reservations: 112, revenue: 3584, occupancy: 76, trend: 6.3 },
-
+  { name: 'Warung Pak Din', reservations: 486, revenue: 20412, occupancy: 88, trend: 14.2 },
+  { name: "Madam Li's Kitchen", reservations: 421, revenue: 28628, occupancy: 82, trend: 9.1 },
+  { name: 'Bijan Heritage', reservations: 368, revenue: 46000, occupancy: 91, trend: 12.8 },
+  { name: 'Restoran Saffron Lane', reservations: 352, revenue: 11264, occupancy: 74, trend: 6.3 },
+  { name: 'Tiga Rasa & Co.', reservations: 318, revenue: 27984, occupancy: 79, trend: 11.4 },
 ];
 
-
-
 export const heatmapData = [
-
-  { day: 'Mon', '12': 28, '14': 22, '18': 38, '19': 52, '20': 48, '21': 24 },
-
-  { day: 'Tue', '12': 32, '14': 26, '18': 42, '19': 58, '20': 52, '21': 28 },
-
-  { day: 'Wed', '12': 36, '14': 30, '18': 48, '19': 64, '20': 58, '21': 30 },
-
-  { day: 'Thu', '12': 40, '14': 34, '18': 54, '19': 72, '20': 66, '21': 34 },
-
-  { day: 'Fri', '12': 44, '14': 38, '18': 68, '19': 88, '20': 82, '21': 48 },
-
-  { day: 'Sat', '12': 52, '14': 42, '18': 78, '19': 98, '20': 92, '21': 56 },
-
-  { day: 'Sun', '12': 48, '14': 40, '18': 72, '19': 86, '20': 78, '21': 44 },
-
+  { day: 'Mon', '12': 24, '14': 18, '18': 34, '19': 46, '20': 41, '21': 22 },
+  { day: 'Tue', '12': 26, '14': 20, '18': 36, '19': 48, '20': 43, '21': 24 },
+  { day: 'Wed', '12': 28, '14': 22, '18': 40, '19': 54, '20': 49, '21': 26 },
+  { day: 'Thu', '12': 32, '14': 26, '18': 44, '19': 58, '20': 52, '21': 28 },
+  { day: 'Fri', '12': 38, '14': 30, '18': 58, '19': 82, '20': 76, '21': 44 },
+  { day: 'Sat', '12': 56, '14': 44, '18': 72, '19': 96, '20': 88, '21': 58 },
+  { day: 'Sun', '12': 52, '14': 40, '18': 66, '19': 84, '20': 74, '21': 48 },
 ];
 
 

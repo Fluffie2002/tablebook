@@ -1,21 +1,34 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { heatmapData } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 
-const hours = ['12', '14', '18', '19', '20', '21'];
+const hours = ['12', '14', '18', '19', '20', '21'] as const;
 
-function intensity(value: number) {
-  if (value >= 90) return 'bg-sky-600 text-white';
-  if (value >= 70) return 'bg-sky-500 text-white';
-  if (value >= 50) return 'bg-sky-400 text-white';
-  if (value >= 30) return 'bg-sky-200 text-sky-900';
+export type HeatmapRow = {
+  day: string;
+  '12': number;
+  '14': number;
+  '18': number;
+  '19': number;
+  '20': number;
+  '21': number;
+};
+
+function intensity(value: number, max: number) {
+  const ratio = max ? (value / max) * 100 : 0;
+  if (ratio >= 90) return 'bg-sky-600 text-white';
+  if (ratio >= 70) return 'bg-sky-500 text-white';
+  if (ratio >= 50) return 'bg-sky-400 text-white';
+  if (ratio >= 30) return 'bg-sky-200 text-sky-900';
   return 'bg-sky-50 text-sky-700';
 }
 
-export function ReservationHeatmap() {
-  const max = Math.max(...heatmapData.flatMap((d) => hours.map((h) => d[h as keyof typeof d] as number)));
+export function ReservationHeatmap({ data }: { data: HeatmapRow[] }) {
+  const max = Math.max(
+    ...data.flatMap((row) => hours.map((hour) => row[hour])),
+    1,
+  );
 
   return (
     <Card>
@@ -28,27 +41,27 @@ export function ReservationHeatmap() {
           <div className="min-w-[480px]">
             <div className="mb-2 grid grid-cols-[48px_repeat(6,1fr)] gap-1.5">
               <div />
-              {hours.map((h) => (
-                <div key={h} className="text-center text-xs font-medium text-slate-500">
-                  {h}:00
+              {hours.map((hour) => (
+                <div key={hour} className="text-center text-xs font-medium text-slate-500">
+                  {hour}:00
                 </div>
               ))}
             </div>
-            {heatmapData.map((row) => (
+            {data.map((row) => (
               <div key={row.day} className="mb-1.5 grid grid-cols-[48px_repeat(6,1fr)] gap-1.5">
                 <div className="flex items-center text-xs font-semibold text-slate-600">{row.day}</div>
-                {hours.map((h) => {
-                  const val = row[h as keyof typeof row] as number;
+                {hours.map((hour) => {
+                  const value = row[hour];
                   return (
                     <div
-                      key={h}
+                      key={hour}
                       className={cn(
                         'flex h-10 items-center justify-center rounded-lg text-xs font-semibold transition hover:scale-105',
-                        intensity((val / max) * 100),
+                        intensity(value, max),
                       )}
-                      title={`${row.day} ${h}:00 — ${val} reservations`}
+                      title={`${row.day} ${hour}:00 — ${value} reservations`}
                     >
-                      {val}
+                      {value}
                     </div>
                   );
                 })}

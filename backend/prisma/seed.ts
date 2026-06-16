@@ -1,5 +1,6 @@
-import { PrismaClient, PriceRange, ReservationStatus, UserRole } from '@prisma/client';
+import { PrismaClient, PriceRange, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { buildAnalyticsReservations } from './seed-analytics';
 
 const prisma = new PrismaClient();
 
@@ -17,6 +18,7 @@ const restaurants = [
     openingTime: '07:00',
     closingTime: '22:00',
     averageSpend: 42,
+    popularity: 1.22,
     description:
       'A Bangsar institution serving fragrant nasi lemak, sambal telur, and charcoal-grilled ayam percik from early morning.',
   },
@@ -33,6 +35,7 @@ const restaurants = [
     openingTime: '11:00',
     closingTime: '22:30',
     averageSpend: 68,
+    popularity: 1.08,
     description:
       'Home-style Chinese Malaysian cooking with curry laksa, butter prawns, and a weekend dim sum trolley.',
   },
@@ -49,6 +52,7 @@ const restaurants = [
     openingTime: '10:00',
     closingTime: '02:00',
     averageSpend: 32,
+    popularity: 0.96,
     description:
       'Penang-style nasi kandar with a rainbow of curries ladled over fragrant rice, open late for supper crowds.',
   },
@@ -65,6 +69,7 @@ const restaurants = [
     openingTime: '17:30',
     closingTime: '23:00',
     averageSpend: 125,
+    popularity: 1.18,
     description:
       'Refined Nyonya flavours in a restored shophouse — ayam buah keluak, otak-otak, and heritage desserts.',
   },
@@ -81,6 +86,7 @@ const restaurants = [
     openingTime: '11:00',
     closingTime: '23:00',
     averageSpend: 88,
+    popularity: 1.04,
     description:
       'A contemporary Malaysian kitchen celebrating the peninsula\'s three cultures with creative fusion plates.',
   },
@@ -97,56 +103,57 @@ const restaurants = [
     openingTime: '08:00',
     closingTime: '18:00',
     averageSpend: 36,
+    popularity: 0.82,
     description:
       'A restored Melaka kopitiam pouring hand-pulled kopi, charcoal-toasted kaya bread, and soft-boiled eggs.',
   },
 ];
 
-const reservationNotes = [
-  'Prefer halal seating section if available.',
-  'Family makan — celebrating parents\' anniversary.',
-  'Need high chair for toddler.',
-  'Window seat if possible, celebrating birthday.',
+const demoUsers = [
+  { name: 'Farid Ibrahim', email: 'admin@tablebook.dev', role: UserRole.ADMIN },
+  { name: 'Siti Aminah', email: 'guest@tablebook.dev', role: UserRole.CUSTOMER },
+  { name: 'Tan Wei Ming', email: 'wei.ming@example.com', role: UserRole.CUSTOMER },
+  { name: 'Priya Devi', email: 'priya@example.com', role: UserRole.CUSTOMER },
+  { name: 'Ahmad Hakim', email: 'ahmad.hakim@example.com', role: UserRole.CUSTOMER },
+  { name: 'Lily Wong', email: 'lily.wong@example.com', role: UserRole.CUSTOMER },
+  { name: 'Rajesh Kumar', email: 'rajesh@example.com', role: UserRole.CUSTOMER },
+  { name: 'Nurul Izzati', email: 'nurul.izzati@example.com', role: UserRole.CUSTOMER },
 ];
 
 async function main() {
   const passwordHash = await bcrypt.hash('TableBook123!', 12);
 
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@tablebook.dev' },
-    update: { name: 'Farid Ibrahim' },
-    create: {
-      name: 'Farid Ibrahim',
-      email: 'admin@tablebook.dev',
-      passwordHash,
-      role: UserRole.ADMIN,
-    },
-  });
-
-  const customer = await prisma.user.upsert({
-    where: { email: 'guest@tablebook.dev' },
-    update: { name: 'Siti Aminah' },
-    create: {
-      name: 'Siti Aminah',
-      email: 'guest@tablebook.dev',
-      passwordHash,
-      role: UserRole.CUSTOMER,
-    },
-  });
+  const users = [];
+  for (const user of demoUsers) {
+    const created = await prisma.user.upsert({
+      where: { email: user.email },
+      update: { name: user.name, role: user.role },
+      create: {
+        name: user.name,
+        email: user.email,
+        passwordHash,
+        role: user.role,
+      },
+    });
+    users.push(created);
+  }
 
   const createdRestaurants = [];
+  const tablesByRestaurant = new Map<string, { id: string; label: string; capacity: number }[]>();
 
   for (const restaurant of restaurants) {
+    const { popularity, ...restaurantData } = restaurant;
     const created = await prisma.restaurant.upsert({
       where: { slug: restaurant.slug },
-      update: restaurant,
-      create: restaurant,
+      update: restaurantData,
+      create: restaurantData,
     });
 
-    createdRestaurants.push(created);
+    createdRestaurants.push({ id: created.id, averageSpend: created.averageSpend, popularity });
+    const tables = [];
 
     for (const [index, capacity] of [2, 2, 4, 4, 6, 8].entries()) {
-      await prisma.table.upsert({
+      const table = await prisma.table.upsert({
         where: {
           restaurantId_label: {
             restaurantId: created.id,
@@ -160,49 +167,31 @@ async function main() {
           capacity,
         },
       });
+      tables.push(table);
     }
+
+    tablesByRestaurant.set(created.id, tables);
   }
 
-  const now = new Date();
-  const statuses = [
-    ReservationStatus.APPROVED,
-    ReservationStatus.PENDING,
-    ReservationStatus.COMPLETED,
-    ReservationStatus.REJECTED,
-  ];
-  const timeSlots = ['12:00', '12:30', '13:00', '19:00', '20:00', '20:30', '21:00'];
+  await prisma.reservation.deleteMany();
 
-  for (let dayOffset = -24; dayOffset <= 8; dayOffset += 1) {
-    for (const [index, restaurant] of createdRestaurants.entries()) {
-      const table = await prisma.table.findFirst({
-        where: { restaurantId: restaurant.id, capacity: { gte: 2 } },
-        orderBy: { capacity: 'asc' },
-      });
+  const reservationData = buildAnalyticsReservations({
+    restaurants: createdRestaurants,
+    tablesByRestaurant,
+    users,
+  });
 
-      if (!table) {
-        continue;
-      }
-
-      const date = new Date(now);
-      date.setDate(now.getDate() + dayOffset);
-      date.setHours(0, 0, 0, 0);
-
-      await prisma.reservation.create({
-        data: {
-          userId: index % 2 === 0 ? customer.id : admin.id,
-          restaurantId: restaurant.id,
-          tableId: table.id,
-          date,
-          timeSlot: timeSlots[(dayOffset + index + timeSlots.length * 10) % timeSlots.length],
-          guestCount: [2, 4, 3, 5, 6][index % 5],
-          status: statuses[(dayOffset + index + statuses.length * 10) % statuses.length],
-          notes: dayOffset === 0 ? reservationNotes[index % reservationNotes.length] : undefined,
-        },
-      });
-    }
+  const batchSize = 250;
+  for (let index = 0; index < reservationData.length; index += batchSize) {
+    await prisma.reservation.createMany({
+      data: reservationData.slice(index, index + batchSize),
+    });
   }
 
-  console.log('Seeded TableBook Malaysia with admin@tablebook.dev and guest@tablebook.dev');
+  console.log(
+    `Seeded TableBook Malaysia with ${reservationData.length} reservations across ${createdRestaurants.length} venues.`,
+  );
+  console.log('Demo accounts: admin@tablebook.dev / guest@tablebook.dev (password: TableBook123!)');
 }
 
 main()

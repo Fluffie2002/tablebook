@@ -22,7 +22,7 @@ export function TrendChart({
     <Card className="lg:col-span-2 overflow-hidden">
       <CardHeader className="border-b border-slate-100 bg-slate-50/50">
         <CardTitle className="text-lg">Reservation & revenue trends</CardTitle>
-        <p className="text-sm text-slate-500">14-day performance overview</p>
+        <p className="text-sm text-slate-500">30-day performance overview</p>
       </CardHeader>
       <CardContent className="pt-6">
         <div className="h-80">

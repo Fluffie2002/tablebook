@@ -30,4 +30,14 @@ export class DashboardController {
   popularTimes() {
     return this.dashboard.popularTimes();
   }
+
+  @Get('heatmap')
+  heatmap() {
+    return this.dashboard.heatmap();
+  }
+
+  @Get('restaurant-performance')
+  restaurantPerformance() {
+    return this.dashboard.restaurantPerformance();
+  }
 }
