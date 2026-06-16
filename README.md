@@ -1,60 +1,187 @@
-# TableBook
+# 🍽️ TableBook
 
-TableBook is a portfolio-grade restaurant reservation platform localized for Malaysia, built with Next.js 15, NestJS, Prisma, PostgreSQL, and AWS-ready infrastructure patterns.
+Modern Restaurant Reservation Platform built with Next.js, NestJS, PostgreSQL and AWS.
 
-## Apps
+## 📋 Overview
 
-- `frontend/`: Next.js App Router, TypeScript, Tailwind CSS, shadcn-style UI primitives, TanStack Query, React Hook Form, Zod, Recharts.
-- `backend/`: NestJS, Prisma ORM, PostgreSQL, JWT auth, role guards, dashboard analytics, S3 presigned uploads.
+TableBook is a full-stack restaurant reservation platform that enables customers to discover restaurants, make reservations online, and manage bookings seamlessly.
 
-## Demo Accounts
+The platform also provides restaurant owners with analytics, reservation management tools, and business insights through an administrative dashboard.
 
-After seeding:
+---
 
-- Admin: `admin@tablebook.dev` / `TableBook123!` (Farid Ibrahim)
-- Guest: `guest@tablebook.dev` / `TableBook123!` (Siti Aminah)
+## 🚀 Features
 
-## Local Setup
+### Customer Features
 
-Start PostgreSQL with Docker (recommended):
+* User Registration & Authentication
+* Restaurant Discovery
+* Restaurant Search
+* Restaurant Details
+* Online Reservations
+* Reservation History
+* Reservation Cancellation
+
+### Admin Features
+
+* Reservation Management
+* Restaurant Management
+* Table Management
+* Analytics Dashboard
+* Performance Monitoring
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+
+* Next.js 15
+* React
+* TypeScript
+* Tailwind CSS
+* shadcn/ui
+
+### Backend
+
+* NestJS
+* TypeScript
+* Prisma ORM
+
+### Database
+
+* PostgreSQL
+
+### Cloud & Infrastructure
+
+* AWS EC2
+* AWS RDS
+* AWS S3
+* CloudFront
+
+### Authentication
+
+* JWT Authentication
+
+---
+
+## 🏗 Architecture
+
+Frontend (Next.js)
+
+↓
+
+REST API
+
+↓
+
+Backend (NestJS)
+
+↓
+
+PostgreSQL Database
+
+↓
+
+AWS Infrastructure
+
+---
+
+## 📸 Screenshots
+
+### Landing Page
+
+Add screenshot here
+
+### Restaurant Discovery
+
+Add screenshot here
+
+### Restaurant Details
+
+Add screenshot here
+
+### Admin Dashboard
+
+Add screenshot here
+
+---
+
+## ⚙️ Installation
+
+Clone Repository
 
 ```bash
-# Docker Desktop must be running first
-docker compose up -d
+git clone https://github.com/YOUR_USERNAME/tablebook.git
 ```
 
-The default `.env` uses port `5434` for the Docker PostgreSQL container.
-
-If you already have PostgreSQL 17 installed locally, update `backend/.env` instead:
-
-```env
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/tablebook?schema=public"
-```
-
-Then create the database once:
-
-```bash
-psql -U postgres -h localhost -c "CREATE DATABASE tablebook;"
-```
-
-```bash
-cd backend
-cp .env.example .env
-npm run prisma:generate
-npm run prisma:migrate
-npm run prisma:seed
-npm run start:dev
-```
+Frontend
 
 ```bash
 cd frontend
-cp .env.example .env.local
+npm install
 npm run dev
 ```
 
-## Deployment Notes
+Backend
 
-- Run PostgreSQL on AWS RDS and set `DATABASE_URL` in the backend environment.
-- Deploy the NestJS API on AWS EC2 behind HTTPS and set `FRONTEND_URL` for CORS.
-- Use AWS S3 for restaurant image uploads through `POST /api/admin/uploads/presign`.
-- Run `npm run prisma:migrate` during release setup and `npm run start:prod` for the compiled API.
+```bash
+cd backend
+npm install
+npm run start:dev
+```
+
+---
+
+## 🔑 Environment Variables
+
+Frontend
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+Backend
+
+```env
+DATABASE_URL=
+JWT_SECRET=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=
+AWS_S3_BUCKET=
+```
+
+---
+
+## 📂 Folder Structure
+
+```text
+tablebook/
+│
+├── frontend/
+│
+├── backend/
+│
+├── docs/
+│
+└── README.md
+```
+
+---
+
+## 🎯 Future Improvements
+
+* AI Restaurant Insights
+* Multi-restaurant Support
+* Mobile Application
+* Payment Integration
+* Reservation Recommendations
+
+---
+
+## 👨‍💻 Author
+
+Full Stack Developer
+
+React • Next.js • Node.js • NestJS • PostgreSQL • AWS
